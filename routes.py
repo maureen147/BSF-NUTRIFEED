@@ -30,14 +30,16 @@ def login():
     if not user or not check_password_hash(user.password, data["password"]):
         return jsonify({"msg": "Invalid credentials"}), 401
 
-    token = create_access_token(identity=user.id)
+    # Convert user ID to string for JWT
+    token = create_access_token(identity=str(user.id))
     return jsonify({"access_token": token})
 
 
 @api.route("/feed", methods=["POST"])
 @jwt_required()
 def create_feed():
-    user_id = get_jwt_identity()
+    # Convert JWT identity back to int
+    user_id = int(get_jwt_identity())
     data = request.json
 
     record = FeedRecord(
@@ -54,7 +56,8 @@ def create_feed():
 @api.route("/feed", methods=["GET"])
 @jwt_required()
 def get_feed():
-    user_id = get_jwt_identity()
+    # Convert JWT identity back to int
+    user_id = int(get_jwt_identity())
     records = FeedRecord.query.filter_by(user_id=user_id).all()
 
     return jsonify([
@@ -66,7 +69,8 @@ def get_feed():
 @api.route("/monitor", methods=["POST"])
 @jwt_required()
 def create_monitor():
-    user_id = get_jwt_identity()
+    # Convert JWT identity back to int
+    user_id = int(get_jwt_identity())
     data = request.json
 
     log = Monitoring(
