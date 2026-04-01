@@ -1,12 +1,11 @@
 # file: routes.py
 from flask import Blueprint, request, jsonify
-from models import db, User, FeedRecord, Monitoring
+from models import db, User, FeedRecord, Monitoring, AuditLog
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import (
-    create_access_token, jwt_required, get_jwt_identity
-)
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 api = Blueprint("api", __name__)
+
 
 @api.route("/register", methods=["POST"])
 def register():
@@ -19,6 +18,12 @@ def register():
     )
     db.session.add(user)
     db.session.commit()
+
+    # Audit log for registration
+    audit = AuditLog(user_id=user.id, action="User registered")
+    db.session.add(audit)
+    db.session.commit()
+
     return jsonify({"msg": "User created"}), 201
 
 
@@ -30,15 +35,19 @@ def login():
     if not user or not check_password_hash(user.password, data["password"]):
         return jsonify({"msg": "Invalid credentials"}), 401
 
-    # Convert user ID to string for JWT
     token = create_access_token(identity=str(user.id))
+
+    # Audit log for login
+    audit = AuditLog(user_id=user.id, action="User logged in")
+    db.session.add(audit)
+    db.session.commit()
+
     return jsonify({"access_token": token})
 
 
 @api.route("/feed", methods=["POST"])
 @jwt_required()
 def create_feed():
-    # Convert JWT identity back to int
     user_id = int(get_jwt_identity())
     data = request.json
 
@@ -48,6 +57,10 @@ def create_feed():
         quantity=data["quantity"],
     )
     db.session.add(record)
+
+    # Audit log for feed creation
+    audit = AuditLog(user_id=user_id, action=f"Added feed: {data['feed_type']} ({data['quantity']})")
+    db.session.add(audit)
     db.session.commit()
 
     return jsonify({"msg": "Feed added"})
@@ -56,7 +69,6 @@ def create_feed():
 @api.route("/feed", methods=["GET"])
 @jwt_required()
 def get_feed():
-    # Convert JWT identity back to int
     user_id = int(get_jwt_identity())
     records = FeedRecord.query.filter_by(user_id=user_id).all()
 
@@ -69,7 +81,6 @@ def get_feed():
 @api.route("/monitor", methods=["POST"])
 @jwt_required()
 def create_monitor():
-    # Convert JWT identity back to int
     user_id = int(get_jwt_identity())
     data = request.json
 
@@ -80,6 +91,27 @@ def create_monitor():
         output_log=data["output_log"],
     )
     db.session.add(log)
+
+    # Audit log for monitoring creation
+    audit = AuditLog(user_id=user_id, action=f"Added monitoring: larvae_growth={data['larvae_growth']}")
+    db.session.add(audit)
     db.session.commit()
 
     return jsonify({"msg": "Monitoring saved"})
+
+
+@api.route("/monitor", methods=["GET"])
+@jwt_required()
+def get_monitor():
+    user_id = int(get_jwt_identity())
+    logs = Monitoring.query.filter_by(user_id=user_id).all()
+
+    return jsonify([
+        {
+            "larvae_growth": l.larvae_growth,
+            "input_log": l.input_log,
+            "output_log": l.output_log,
+            "date": l.date
+        }
+        for l in logs
+    ])

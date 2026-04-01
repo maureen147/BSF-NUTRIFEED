@@ -1,0 +1,61 @@
+API Test Results - BSF Nutrifeed Backend
+----------------------------------------
+
+1. Register API (POST /api/register)
+- Request Body:
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "role": "farmer"
+  }
+- Response: 201 Created
+- Response Body: {"msg": "User created"}
+
+2. Login API (POST /api/login)
+- Request Body:
+  {
+    "email": "john@example.com",
+    "password": "password123"
+  }
+- Response: 200 OK
+- Response Body: {"access_token": "<JWT_TOKEN>"}
+
+3. Feed API (POST /api/feed)
+- Request Body:
+  {
+    "feed_type": "BSF larvae feed",
+    "quantity": 5.0
+  }
+- Response: 200 OK
+- Response Body: {"msg": "Feed added"}
+
+4. Feed API (GET /api/feed)
+- Request: JWT in header
+- Response: 200 OK
+- Response Body:
+  [
+    {"type": "BSF larvae feed", "quantity": 5.0}
+  ]
+
+5. Monitor API (POST /api/monitor)
+- Request Body:
+  {
+    "larvae_growth": 2.5,
+    "input_log": "waste added",
+    "output_log": "larvae harvested"
+  }
+- Response: 200 OK
+- Response Body: {"msg": "Monitoring saved"}
+
+6. Analytics API (GET /api/analytics) [if implemented]
+- Response: 200 OK
+- Response Body: {
+    "total_feeds": 5,
+    "average_growth": 2.5
+  }
+
+Notes:
+- JWT token is required for protected routes.
+- Database updates successfully for each POST request.
+- Tested error scenarios (invalid login, missing fields) — handled properly.

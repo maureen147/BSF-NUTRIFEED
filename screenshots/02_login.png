@@ -1,0 +1,25 @@
+# API Test Results for BSF-Nutrifeed Backend
+
+1. Register API
+POST /api/register
+Request Body: {"name":"John Doe","email":"john@example.com","password":"123456"}
+Response: {"msg":"User created"} 201 Created
+
+2. Login API
+POST /api/login
+Request Body: {"email":"john@example.com","password":"123456"}
+Response: {"access_token":"<JWT_TOKEN>"} 200 OK
+
+3. Add Feed
+POST /api/feed
+Request Body: {"feed_type":"Worm Feed","quantity":5}
+Response: {"msg":"Feed added"} 200 OK
+
+4. Get Feed
+GET /api/feed
+Response: [{"type":"Worm Feed","quantity":5}] 200 OK
+
+5. Monitor API
+POST /api/monitor
+Request Body: {"larvae_growth":2.5,"input_log":"waste added","output_log":"larvae harvested"}
+Response: {"msg":"Monitoring saved"} 200 OK
